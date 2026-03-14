@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Card Maker</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .festive-font { font-family: 'Pacifico', cursive; }
+        /* Smooth transition for theme switching */
+        #card-preview { transition: background 0.5s ease; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 flex flex-col items-center">
+
+    <div class="text-center mb-8">
+        <h1 class="text-4xl md:text-5xl text-indigo-600 festive-font mb-2">Card Creator</h1>
+        <p class="text-slate-500">Design and download a custom birthday card for your friend!</p>
+    </div>
+
+    <div class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <div class="bg-white p-6 rounded-2xl shadow-lg flex flex-col gap-5">
+            <h2 class="text-2xl font-semibold text-slate-700 border-b pb-2">Edit Details</h2>
+            
+            <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1">To (Friend's Name)</label>
+                <input type="text" id="recipient-input" placeholder="e.g., Alex" class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none" value="Awesome Friend">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1">Message</label>
+                <textarea id="message-input" rows="3" placeholder="Write your wishes here..." class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none">Wishing you a day filled with happiness and a year filled with joy!</textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1">From (Your Name)</label>
+                <input type="text" id="sender-input" placeholder="e.g., Jamie" class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none" value="Your Bestie">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-slate-600 mb-1">Select Theme</label>
+                <select id="theme-input" class="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:outline-none">
+                    <option value="bg-gradient-to-br from-pink-300 via-purple-300 to-indigo-400">Pastel Dream</option>
+                    <option value="bg-gradient-to-br from-yellow-300 via-orange-400 to-red-500">Sunset Vibe</option>
+                    <option value="bg-gradient-to-br from-green-300 via-teal-400 to-blue-500">Ocean Breeze</option>
+                    <option value="bg-gradient-to-br from-fuchsia-500 via-purple-600 to-indigo-700">Neon Party (Dark text to white manually)</option>
+                </select>
+            </div>
+
+            <button id="download-btn" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 px-6 rounded-xl shadow-md transition transform hover:scale-105">
+                🎉 Download Card
+            </button>
+        </div>
+
+        <div class="flex items-center justify-center bg-slate-200 p-6 rounded-2xl shadow-inner border border-slate-300">
+            
+            <div id="card-preview" class="w-full max-w-sm aspect-[3/4] bg-gradient-to-br from-pink-300 via-purple-300 to-indigo-400 rounded-2xl shadow-2xl p-8 flex flex-col justify-between relative overflow-hidden text-center">
+                
+                <div class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none" style="background-image: radial-gradient(circle, #fff 2px, transparent 2px); background-size: 20px 20px;"></div>
+                
+                <div class="relative z-10">
+                    <h3 class="text-3xl festive-font text-slate-800 drop-shadow-sm">Happy Birthday</h3>
+                    <h2 id="recipient-display" class="text-4xl font-bold text-slate-900 mt-2 break-words">Awesome Friend</h2>
+                </div>
+
+                <div class="relative z-10 my-6">
+                    <p id="message-display" class="text-lg text-slate-800 font-medium leading-relaxed italic drop-shadow-sm">
+                        "Wishing you a day filled with happiness and a year filled with joy!"
+                    </p>
+                </div>
+
+                <div class="relative z-10 text-right">
+                    <p class="text-sm text-slate-700 font-semibold uppercase tracking-wider">With Love,</p>
+                    <p id="sender-display" class="text-2xl festive-font text-slate-900 mt-1">Your Bestie</p>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const recipientInput = document.getElementById('recipient-input');
+        const messageInput = document.getElementById('message-input');
+        const senderInput = document.getElementById('sender-input');
+        const themeInput = document.getElementById('theme-input');
+        
+        const recipientDisplay = document.getElementById('recipient-display');
+        const messageDisplay = document.getElementById('message-display');
+        const senderDisplay = document.getElementById('sender-display');
+        const cardPreview = document.getElementById('card-preview');
+        const downloadBtn = document.getElementById('download-btn');
+
+        // Live Preview Logic
+        recipientInput.addEventListener('input', (e) => recipientDisplay.textContent = e.target.value || 'Friend');
+        messageInput.addEventListener('input', (e) => messageDisplay.textContent = `"${e.target.value}"`);
+        senderInput.addEventListener('input', (e) => senderDisplay.textContent = e.target.value || 'You');
+
+        // Theme Switcher Logic
+        themeInput.addEventListener('change', (e) => {
+            // Remove old gradient classes
+            cardPreview.className = `w-full max-w-sm aspect-[3/4] rounded-2xl shadow-2xl p-8 flex flex-col justify-between relative overflow-hidden text-center ${e.target.value}`;
+            
+            // Adjust text color if the "Neon Party" theme is selected so it's readable
+            const textElements = cardPreview.querySelectorAll('h2, h3, p');
+            if(e.target.value.includes('fuchsia-500')) {
+                textElements.forEach(el => el.classList.replace('text-slate-900', 'text-white'));
+                textElements.forEach(el => el.classList.replace('text-slate-800', 'text-white'));
+                textElements.forEach(el => el.classList.replace('text-slate-700', 'text-slate-200'));
+            } else {
+                textElements.forEach(el => el.classList.replace('text-white', 'text-slate-900'));
+                textElements.forEach(el => el.classList.replace('text-white', 'text-slate-800'));
+                textElements.forEach(el => el.classList.replace('text-slate-200', 'text-slate-700'));
+            }
+        });
+
+        // Download and Confetti Logic
+        downloadBtn.addEventListener('click', () => {
+            // Trigger Confetti
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff']
+            });
+
+            // Convert Card to Image
+            // We use html2canvas to take a "screenshot" of the card-preview div
+            html2canvas(cardPreview, { scale: 2 }).then(canvas => {
+                // Create an image URL from the canvas
+                const image = canvas.toDataURL("image/png", 1.0);
+                
+                // Create a temporary link to trigger the download
+                const link = document.createElement('a');
+                link.download = `Birthday_Card_for_${recipientInput.value || 'Friend'}.png`;
+                link.href = image;
+                link.click();
+            });
+        });
+    </script>
+</body>
+</html>
